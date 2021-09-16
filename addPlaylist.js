@@ -1,7 +1,7 @@
 // Used to fill and add to playlists automatically from a user's videos page
 
 // Adds top n newest videos to the specified playlist
-async function addPlaylist(num, plName)
+async function addPlaylist(num, plName, mode="add", args=[])
 {
     // Sleep function
     function sleep(ms)
@@ -24,6 +24,8 @@ async function addPlaylist(num, plName)
     let pNum;
     let titleNotFound = true;
     let sleepTime = 100;
+    let selectMode = false;
+    let selectNum;
 
     if (allVids.length <= 0) {
         // Something broke
@@ -31,12 +33,19 @@ async function addPlaylist(num, plName)
     }
 
     // If called from fillPlaylist()
-    if (num == "all") {
+    if (mode == "fill") {
         num = allVids.length;
+    } // If called from addSelected()
+    else if (mode == "select") {
+        selectMode = true;
+        selectNum = 0;
+        num = args[selectNum];
+        selectNum = selectNum + 1;
     }
 
     // PRIMING PHASE
     // First iteration that primes the pop-up menus out of non-existence
+    console.log(num);
 
     // Get video kebab button
     tempButton = allVids[num - 1].querySelectorAll("button");
@@ -157,13 +166,26 @@ async function addPlaylist(num, plName)
         throw "addPlaylist: Playlist title not found. Either playlist does not exist or something broke.";
     }
 
+    // Sets up next num if addSelected() was called
+    if (selectMode) {
+        if (selectNum < args.length) {
+            num = args[selectNum] + 1;
+            selectNum = selectNum + 1;
+        }
+        else {
+            num = 0;
+        }
+    }
+
     // First iteration done
-    console.log(num);
     num = num - 1;
 
     // REGULAR OPERATION
     // Add remaining top n videos to playlist from oldest to newest
     for (let i = num; i > 0; i--) {
+
+        console.log(i);
+
         // Get video kebab button
         tempButton = allVids[i - 1].querySelectorAll("button");
 
@@ -205,15 +227,34 @@ async function addPlaylist(num, plName)
 
         // Sleep in case it needs time to process click
         await sleep(sleepTime);
-        console.log(i);
+
+        // Sets up next i if addSelected() was called
+        if (selectMode) {
+            if (selectNum < args.length) {
+                i = args[selectNum] + 1;
+                selectNum = selectNum + 1;
+            }
+            else {
+                i = 0;
+            }
+        }
     }
 }
 
 // Adds every single video to the specified playlist (as long as they are loaded on the page)
 function fillPlaylist(plName)
 {
-    addPlaylist("all", plName);
+    addPlaylist(0, plName, "fill");
+}
+
+// Adds selected videos to the specified playlist passed in as an array of video numbers (with 1 being the most recent video)
+// Array is designed to be passed in with numbers in descending order. But they can be in any order. e.g. [98, 65, 43, 27, 11]
+// NOTE -- Each video in the array is added to the playlist in order starting from the beginning of the array.
+function addSelected(plName, vidArray)
+{
+    addPlaylist(0, plName, "select", vidArray);
 }
 
 // FOR CONVENIENCE
-addPlaylist(, "Every Tom Scott Video Ever");
+// addPlaylist(, "Every Tom Scott Video Ever");
+// addSelected("Every Corridor Crew Reacts Video Ever", []);
