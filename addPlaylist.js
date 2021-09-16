@@ -1,18 +1,29 @@
 // Used to fill and add to playlists automatically from a user's videos page
 
-// Adds top n newest videos to the playlist
-function addPlaylist(num)
+// Adds top n newest videos to the specified playlist
+async function addPlaylist(num, plName)
 {
-    // ---- ADD SLEEP FUNCTION HERE ----
+    // Sleep function
+    function sleep(ms)
+    {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     // Get all loaded videos
     let allVids = document.querySelectorAll("ytd-grid-video-renderer");
     let tempButton;
+    let allPopUps;
     let tempOptions;
     let menuPopUp;
     let addButton;
+    let tempSelector;
     let plSelector;
-    let sleepNum = 100;
+    let tempPlaylists;
+    let tempPL;
+    let playlist;
+    let pNum;
+    let titleNotFound = true;
+    let sleepTime = 100;
 
     if (allVids.length <= 0) {
         // Something broke
@@ -30,60 +41,125 @@ function addPlaylist(num)
     // Get video kebab button
     tempButton = allVids[num - 1].querySelectorAll("button");
 
-    if (tempButton.length > 1) {
+    if (tempButton.length != 1) {
         // Something changed -- investigate
-        throw "addPlaylist: there is more than 1 button per video";
+        throw "addPlaylist: there is more or less than 1 button per video";
     }
+
+    if (document.querySelectorAll("ytd-popup-container").length != 1) {
+        // Something changed -- investigate
+        throw "addPlaylist: there is more or less than 1 ytd-popup-container";
+    }
+
+    // Get all pop-ups
+    allPopUps = document.querySelectorAll("ytd-popup-container")[0];
+
+    // Button has not been clicked yet, so there should be 0 if unprimed and 1 if primed already
+    tempOptions = allPopUps.querySelectorAll("tp-yt-iron-dropdown");
 
     // Click kebab button
     tempButton[0].click();
 
-    // There has not been any sleep yet, so there should be 2 if unprimed and 3 if primed already
-    tempOptions = document.querySelectorAll("tp-yt-iron-dropdown");
-
-    if (tempOptions.length == 2) {
+    if (tempOptions.length == 0) {
         // Waiting for the pop-up menu to be created
-        while (tempOptions.length < 3) {
-            // ---- SLEEP 100 ms ----
-            tempOptions = document.querySelectorAll("tp-yt-iron-dropdown");
+        while (tempOptions.length < 1) {
+            await sleep(sleepTime);
+
+            // Refresh allPopUps
+            allPopUps = document.querySelectorAll("ytd-popup-container")[0];
+            tempOptions = allPopUps.querySelectorAll("tp-yt-iron-dropdown");
         }
     }
-    else if (tempOptions.length == 3) {
+    else if (tempOptions.length == 1) {
         // Something changed or it is already primed -- investigate
-        throw "addPlaylist: Either the menu is already primed or there are not 3 tp-yt-iron-dropdown tags when primed. Refresh the page once to be sure.";
+        throw "addPlaylist: Either the menu is already primed or there is more than 1 tp-yt-iron-dropdown tag when primed. Refresh the page once to be sure.";
     }
     else {
         // Something changed -- investigate
-        throw "addPlaylist: there are not 3 tp-yt-iron-dropdown tags when primed";
+        throw "addPlaylist: there is more than 1 tp-yt-iron-dropdown tag when primed";
     }
 
     // SAME menuPopUp ELEMENT IS USED BY ALL VIDEOS
     // Get pop-up menu
-    menuPopUp = tempOptions[2];
+    menuPopUp = tempOptions[0];
 
     // Wait for it to become visible (if not already)
     while (menuPopUp.style.display == "none") {
-        // ---- SLEEP 100 ms ----
+        await sleep(sleepTime);
     }
 
-    // ASSIGN ADD BUTTON
+    // SAME addButton ELEMENT IS USED BY ALL VIDEOS
+    // Get "Save to playlist" button
+    addButton = menuPopUp.querySelectorAll("ytd-menu-service-item-renderer")[2];
 
-    // CHECK FOR TOO MANY OPTIONS
+    // Check that it is correct
+    if (addButton.querySelectorAll("yt-formatted-string")[0].innerText != "Save to playlist") {
+        // Something changed -- investigate
+        throw 'addPlaylist: button does not match "Save to playlist"';
+    }
 
-    // CLICK IT
+    // Button has not been clicked yet, so there should be 0 if unprimed and 1 if primed already
+    tempSelector = allPopUps.querySelectorAll("tp-yt-paper-dialog");
 
-    // ASSIGN PLSELECTOR/CHECK FOR ITS EXISTENCE LIKE ABOVE AND WAIT FOR IT
+    // Click "Save to playlist"
+    addButton.click();
 
-    // WAIT FOR IT TO BECOME VISIBLE
+    if (tempSelector.length == 0) {
+        // Waiting for the playlist menu to be created
+        while (tempSelector.length < 1) {
+            await sleep(sleepTime);
 
-    // FIND PLAYLIST
+            // Refresh allPopUps
+            allPopUps = document.querySelectorAll("ytd-popup-container")[0];
+            tempSelector = allPopUps.querySelectorAll("tp-yt-paper-dialog");
+        }
+    }
+    else {
+        // Something changed -- investigate
+        throw "addPlaylist: there is more than 1 tp-yt-paper-dialog tag when primed";
+    }
 
-    // CLICK CHECKBOX
+    plSelector = tempSelector[0];
 
+    // Wait for it to become visible (if not already)
+    while (plSelector.style.display == "none") {
+        await sleep(sleepTime);
+    }
+
+    // All playlists
+    tempPlaylists = plSelector.querySelectorAll("ytd-playlist-add-to-option-renderer");
+
+    // Playlist slot to use after first iteration
+    tempPL = tempPlaylists[1].querySelectorAll("tp-yt-paper-checkbox");
+
+    if (tempPL.length != 1) {
+        // Something changed -- investigate
+        throw "addPlaylist: there is more or less than 1 tp-yt-paper-checkbox per playlist";
+    }
+
+    // Playlist to use after first iteration
+    playlist = tempPL[0];
+
+    // Find playlist title in tempPlaylists
+    for (pNum = 0; pNum < tempPlaylists.length; pNum++) {
+        if (tempPlaylists[pNum].querySelectorAll("yt-formatted-string")[0].innerText == plName) {
+            // Playlist title found
+            titleNotFound = false;
+            // Click checkbox
+            tempPlaylists[pNum].querySelectorAll("tp-yt-paper-checkbox")[0].click();
+            // Sleep in case it needs time to process click
+            await sleep(sleepTime);
+            break;
+        }
+    }
+
+    if (titleNotFound) {
+        throw "addPlaylist: Playlist title not found. Either playlist does not exist or something broke.";
+    }
+
+    // First iteration done
+    console.log(num);
     num = num - 1;
-
-    // REMOVE THIS
-    return;
 
     // REGULAR OPERATION
     // Add remaining top n videos to playlist from oldest to newest
@@ -91,37 +167,53 @@ function addPlaylist(num)
         // Get video kebab button
         tempButton = allVids[i - 1].querySelectorAll("button");
 
-        if (tempButton.length > 1) {
+        if (tempButton.length != 1) {
             // Something changed -- investigate
-            throw "addPlaylist: there is more than 1 button per video";
+            throw "addPlaylist: there is more or less than 1 button per video";
         }
 
         // Click kebab button
         tempButton[0].click();
 
+        // Wait for it to become visible (if not already)
         while (menuPopUp.style.display == "none") {
-            // ---- SLEEP 100 ms ----
+            await sleep(sleepTime);
         }
 
+        // Click "Save to playlist"
         addButton.click();
 
-        // ---- NOT SURE IF THIS ELEMENT IS PERSISTENT YET ----
+        // Wait for it to become visible (if not already)
         while (plSelector.style.display == "none") {
-            // ---- SLEEP 100 ms ----
+            await sleep(sleepTime);
         }
 
-        // ---- FIND PLAYLIST IN LIST AND CLICK CHECKBOX ----
+        // Check playlist title
+        if (playlist.querySelectorAll("yt-formatted-string")[0].innerText == plName) {
+            // Click correct playlist title
+            playlist.click();
+        }
+        else if (tempPlaylists[pNum].querySelectorAll("yt-formatted-string")[0].innerText == plName) {
+            // Playlist has not changed slots yet -- not quick enough
+            // Click correct playlist title
+            tempPlaylists[pNum].querySelectorAll("tp-yt-paper-checkbox")[0].click();
+        }
+        else {
+            // Something changed -- investigate
+            throw "addPlaylist: playlist title in expected and original list slots does not match past 1st iteration";
+        }
 
-        // ---- UNFINISHED. FILL IN INDICATED MISSING PARTS ----
+        // Sleep in case it needs time to process click
+        await sleep(sleepTime);
+        console.log(i);
     }
-
 }
 
-// Adds every single video to the playlist (as long as they are loaded on the page)
-function fillPlaylist()
+// Adds every single video to the specified playlist (as long as they are loaded on the page)
+function fillPlaylist(plName)
 {
-    addPlaylist("all");
+    addPlaylist("all", plName);
 }
 
 // FOR CONVENIENCE
-addPlaylist();
+addPlaylist(, "Every Tom Scott Video Ever");

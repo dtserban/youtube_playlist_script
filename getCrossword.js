@@ -2,7 +2,7 @@
 function getCrossword(date)
 {
 	// Supply date "MMDDYYYY"
-    // Oldest is 06/04/2017
+	// Oldest is 06/04/2017
 
 	let M = date.slice(0, 2);
 	let D = date.slice(2, 4);
