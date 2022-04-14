@@ -228,6 +228,22 @@ async function addPlaylist(num, plName, mode="add", args=[])
                 titleNotFound = false;
             }
             else if (idleTime < timeoutTime) {
+                // Handles a playlist miss, ultimately timing out if it can't be found
+                // Search for playlist title in tempPlaylists
+                // console.log("playlist miss");
+                for (pNum = 0; pNum < tempPlaylists.length; pNum++) {
+                    if (tempPlaylists[pNum].querySelectorAll("yt-formatted-string")[0].innerText == plName) {
+                        // Playlist title found
+                        // console.log("playlist hit");
+                        titleNotFound = false;
+                        // Reassign expected playlist slot
+                        playlist = tempPlaylists[pNum].querySelectorAll("tp-yt-paper-checkbox")[0];
+                        // Click checkbox
+                        playlist.click();
+                        break;
+                    }
+                }
+
                 await sleep(sleepTime);
                 idleTime = idleTime + sleepTime;
             }
