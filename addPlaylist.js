@@ -24,6 +24,8 @@ async function addPlaylist(num, plName, mode="add", args=[])
     let pNum;
     let titleNotFound = true;
     let sleepTime = 100;
+    let idleTime = 0;
+    let timeoutTime = 5000;
     let selectMode = false;
     let selectNum;
 
@@ -185,6 +187,8 @@ async function addPlaylist(num, plName, mode="add", args=[])
     for (let i = num; i > 0; i--) {
 
         console.log(i);
+        titleNotFound = true;
+        idleTime = 0;
 
         // Get video kebab button
         tempButton = allVids[i - 1].querySelectorAll("button");
@@ -211,18 +215,26 @@ async function addPlaylist(num, plName, mode="add", args=[])
         }
 
         // Check playlist title
-        if (playlist.querySelectorAll("yt-formatted-string")[0].innerText == plName) {
-            // Click correct playlist title
-            playlist.click();
-        }
-        else if (tempPlaylists[pNum].querySelectorAll("yt-formatted-string")[0].innerText == plName) {
-            // Playlist has not changed slots yet -- not quick enough
-            // Click correct playlist title
-            tempPlaylists[pNum].querySelectorAll("tp-yt-paper-checkbox")[0].click();
-        }
-        else {
-            // Something changed -- investigate
-            throw "addPlaylist: playlist title in expected and original list slots does not match past 1st iteration";
+        while (titleNotFound) {
+            if (playlist.querySelectorAll("yt-formatted-string")[0].innerText == plName) {
+                // Click correct playlist title
+                playlist.click();
+                titleNotFound = false;
+            }
+            else if (tempPlaylists[pNum].querySelectorAll("yt-formatted-string")[0].innerText == plName) {
+                // Playlist has not changed slots yet -- not quick enough
+                // Click correct playlist title
+                tempPlaylists[pNum].querySelectorAll("tp-yt-paper-checkbox")[0].click();
+                titleNotFound = false;
+            }
+            else if (idleTime < timeoutTime) {
+                await sleep(sleepTime);
+                idleTime = idleTime + sleepTime;
+            }
+            else {
+                // Something changed -- investigate
+                throw "addPlaylist: timeout -- playlist title in expected and original list slots does not match past 1st iteration";
+            }
         }
 
         // Sleep in case it needs time to process click
