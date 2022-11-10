@@ -1,3 +1,7 @@
+\****YouTube has just significantly changed their webpage code which has affected the functionality of this script.***\*
+
+\****I will update this code and restore functionality within a day, hopefully.***\*
+
 # addPlaylist.js
 
 This code is used to automatically add a large quantity of YouTube videos to a pre-existing YouTube playlist. It is designed to be run in the browser console on the "Videos" page of any given YouTube channel whose videos you want to add to your playlist. The code adds videos to a playlist by navigating the page elements and programmatically performing the necessary button clicks on the videos to save them to the specified playlist as though the user were doing it manually. A large batch of 600 videos can be added to a playlist in about 10 minutes.
