@@ -10,7 +10,7 @@ async function addPlaylist(num, plName, mode="add", args=[])
     }
 
     // Get all loaded videos
-    let allVids = document.querySelectorAll("ytd-grid-video-renderer");
+    let allVids = document.querySelectorAll("ytd-rich-grid-media");
     let tempButton;
     let allPopUps;
     let tempOptions;
@@ -31,7 +31,7 @@ async function addPlaylist(num, plName, mode="add", args=[])
 
     if (allVids.length <= 0) {
         // Something broke
-        throw "addPlaylist: no ytd-grid-video-renderer tags found";
+        throw "addPlaylist: no ytd-rich-grid-media tags found";
     }
 
     // If called from fillPlaylist()
