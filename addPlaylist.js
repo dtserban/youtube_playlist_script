@@ -283,6 +283,25 @@ function addSelected(plName, vidArray)
     addPlaylist(0, plName, "select", vidArray);
 }
 
+// TEST CODE
+// let allVids = document.querySelectorAll("ytd-rich-grid-media");
+// let num = allVids.length;
+// let tempButton = allVids[num - 1].querySelectorAll("button");
+// tempButton[0].click();
+//
+// let allPopUps = document.querySelectorAll("ytd-popup-container")[0];
+// let tempOptions = allPopUps.querySelectorAll("tp-yt-iron-dropdown");
+// let menuPopUp = tempOptions[0];
+// let addButton = menuPopUp.querySelectorAll("ytd-menu-service-item-renderer")[2];
+// addButton.click();
+//
+// allPopUps = document.querySelectorAll("ytd-popup-container")[0];
+// let tempSelector = allPopUps.querySelectorAll("tp-yt-paper-dialog");
+// let plSelector = tempSelector[0];
+// let tempPlaylists = plSelector.querySelectorAll("ytd-playlist-add-to-option-renderer");
+// tempPlaylists[0].querySelectorAll("tp-yt-paper-checkbox")[0].click();
+
+
 // FOR CONVENIENCE
 // addPlaylist(, "Every Tom Scott Video Ever");
 // addSelected("Every Corridor Crew Reacts Video Ever", []);
